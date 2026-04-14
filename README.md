@@ -1,6 +1,21 @@
 # e2e-kafka
 
-Java (containerized build, default Java 21 runtime) end-to-end Kafka latency test app for GCP Managed Kafka with OAuth (OAUTHBEARER), using Kafka clients 3.7.x.
+Java (containerized build, default Java 21 runtime) end-to-end Kafka latency test app for GCP Managed Kafka with OAuth (OAUTHBEARER), using Kafka clients 4.x.
+
+## Versioned releases
+
+| Tag | Kafka client | Notes |
+|-----|-------------|-------|
+| [`v1.0.0-kafka-3.7-gcp`](https://github.com/mordp1/e2e-kafka/tree/v1.0.0-kafka-3.7-gcp) | 3.7.2 | Kafka 3.7.x + GCP Managed Kafka OAuth — use this if you need 3.7.x compatibility |
+| `main` | 4.x (latest) | Tracks the latest Kafka client release |
+
+To use the Kafka 3.7.x version:
+
+```bash
+git checkout v1.0.0-kafka-3.7-gcp
+```
+
+---
 
 ## What it does
 
