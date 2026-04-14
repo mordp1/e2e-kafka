@@ -1,6 +1,6 @@
 # e2e-kafka
 
-Java (containerized build, default Java 21 runtime) end-to-end Kafka latency test app for GCP Managed Kafka with OAuth (OAUTHBEARER), using Kafka clients 4.x.
+Java (containerized build, default Java 21 runtime) end-to-end Kafka latency test app for GCP Managed Kafka with OAuth (OAUTHBEARER), using Kafka clients 4.2.x.
 
 ## Versioned releases
 
