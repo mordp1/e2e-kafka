@@ -1,21 +1,6 @@
 # e2e-kafka
 
-Java (containerized build, default Java 21 runtime) end-to-end Kafka latency test app for GCP Managed Kafka with OAuth (OAUTHBEARER), using Kafka clients 4.2.x.
-
-## Versioned releases
-
-| Tag | Kafka client | Notes |
-|-----|-------------|-------|
-| [`v1.0.0-kafka-3.7-gcp`](https://github.com/mordp1/e2e-kafka/tree/v1.0.0-kafka-3.7-gcp) | 3.7.2 | Kafka 3.7.x + GCP Managed Kafka OAuth — use this if you need 3.7.x compatibility |
-| `main` | 4.x (latest) | Tracks the latest Kafka client release |
-
-To use the Kafka 3.7.x version:
-
-```bash
-git checkout v1.0.0-kafka-3.7-gcp
-```
-
----
+Java (containerized build, default Java 21 runtime) end-to-end Kafka latency test tool. Produces and consumes messages, measures producer-to-consumer latency, and generates JSON + HTML reports. Works with any Kafka cluster — see [connection examples](#connection-examples) below.
 
 ## What it does
 
@@ -44,11 +29,23 @@ skip local Maven and use Docker build/run below.
 
 ### 1. Prepare config
 
+Pick the template from [`examples/`](examples/) that matches your cluster type:
+
 ```bash
-cd e2e-kafka
-cp kafka-client.properties.example kafka-client.properties
-# Edit kafka-client.properties — set bootstrap.servers and keep OAuth settings
+# GCP Managed Kafka (OAuth)
+cp examples/gcp-managed-kafka.properties kafka-client.properties
+
+# SCRAM-SHA-512
+cp examples/scram-sha-512.properties kafka-client.properties
+
+# mTLS
+cp examples/mtls.properties kafka-client.properties
+
+# Local / docker-compose (no auth)
+cp examples/plaintext.properties kafka-client.properties
 ```
+
+Edit `kafka-client.properties` and replace every `<PLACEHOLDER>` with real values.
 
 ### 2. GCP credentials inside the container
 
@@ -248,3 +245,78 @@ At the end it prints:
 - `consumed`
 
 If `failed sends > 0` or `consumed < produced`, check topic ACLs/auth and consumer group settings.
+
+---
+
+## Connection examples
+
+All connection settings are driven entirely by the properties file passed via `--kafkaProps`. No code changes or rebuilds are needed to switch cluster types.
+
+Ready-to-use templates are in the [`examples/`](examples/) directory:
+
+| File | Protocol | Use with |
+|------|----------|----------|
+| [`plaintext.properties`](examples/plaintext.properties) | `PLAINTEXT` | Local broker / docker-compose (no auth) |
+| [`ssl-tls.properties`](examples/ssl-tls.properties) | `SSL` | One-way TLS (server cert verification only) |
+| [`mtls.properties`](examples/mtls.properties) | `SSL` (mutual) | mTLS — both sides verify certificates |
+| [`scram-sha-256.properties`](examples/scram-sha-256.properties) | `SASL_SSL` + `SCRAM-SHA-256` | Self-managed Kafka, Aiven, Redpanda |
+| [`scram-sha-512.properties`](examples/scram-sha-512.properties) | `SASL_SSL` + `SCRAM-SHA-512` | Self-managed Kafka (stronger SCRAM) |
+| [`sasl-plain.properties`](examples/sasl-plain.properties) | `SASL_SSL` + `PLAIN` | Confluent Cloud, Azure Event Hubs |
+| [`gcp-managed-kafka.properties`](examples/gcp-managed-kafka.properties) | `SASL_SSL` + `OAUTHBEARER` | GCP Managed Service for Apache Kafka |
+| [`confluent-cloud.properties`](examples/confluent-cloud.properties) | `SASL_SSL` + `PLAIN` | Confluent Cloud (API Key / Secret) |
+| [`aws-msk-scram.properties`](examples/aws-msk-scram.properties) | `SASL_SSL` + `SCRAM-SHA-512` | Amazon MSK (Secrets Manager credentials) |
+| [`aiven.properties`](examples/aiven.properties) | `SSL` (mutual) | Aiven for Apache Kafka (mTLS default) |
+
+### Quick start for any cluster type
+
+```bash
+# 1. Copy the template that matches your cluster
+cp examples/scram-sha-256.properties kafka-client.properties
+
+# 2. Fill in bootstrap.servers, username, password (and truststore if needed)
+#    — replace every <PLACEHOLDER> with real values
+
+# 3. Run (Docker only — no local Java/Maven needed)
+TOPIC=my-topic NUM_MESSAGES=10000 ./run-docker.sh
+```
+
+### Mounting TLS keystores / truststores
+
+For SSL, mTLS, and SCRAM-over-TLS templates you need JKS files inside the container.
+`run-docker.sh` mounts them automatically when you export the paths:
+
+```bash
+# One-way TLS
+export SSL_TRUSTSTORE=/path/to/client.truststore.jks
+./run-docker.sh
+
+# mTLS (also needs the client keystore)
+export SSL_TRUSTSTORE=/path/to/client.truststore.jks
+export SSL_KEYSTORE=/path/to/client.keystore.jks
+./run-docker.sh
+```
+
+The files are mounted read-only at `/app/secrets/client.truststore.jks` and `/app/secrets/client.keystore.jks` — matching the paths already written in the example templates.
+
+### GCP Managed Kafka (OAuth)
+
+```bash
+# Option A — service account JSON
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/sa.json
+TOPIC=my-topic ./run-docker.sh
+
+# Option B — gcloud ADC (local dev)
+gcloud auth application-default login
+TOPIC=my-topic ./run-docker.sh
+```
+
+### Kafka client version
+
+| Tag | Kafka client | Notes |
+|-----|-------------|-------|
+| [`v1.0.0-kafka-3.7-gcp`](https://github.com/mordp1/e2e-kafka/tree/v1.0.0-kafka-3.7-gcp) | 3.7.2 | GCP OAuth baseline — use if you need 3.7.x |
+| `main` | 4.2.0 | Latest |
+
+```bash
+git checkout v1.0.0-kafka-3.7-gcp   # switch to the 3.7.x baseline
+```
