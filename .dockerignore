@@ -1,0 +1,8 @@
+target/
+.git
+.gitignore
+out/
+*.iml
+.idea
+.vscode
+kafka-client.properties

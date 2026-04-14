@@ -1,0 +1,5 @@
+# Local docker-compose Kafka — PLAINTEXT, no auth required.
+# Used by the e2e-kafka service defined in docker-compose.yaml.
+# For GCP Managed Kafka, see kafka-client.properties.example instead.
+bootstrap.servers=kafka-source:29092
+security.protocol=PLAINTEXT

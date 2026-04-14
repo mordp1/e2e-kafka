@@ -1,0 +1,24 @@
+# Maven build output
+target/
+
+# Built JARs
+dist/
+
+# Generated test reports
+out/
+report-*.json
+report-*.html
+
+# Local / real Kafka config (never commit real credentials or bootstrap servers)
+kafka-client.properties
+
+# Temp / scratch files
+docke
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# macOS
+.DS_Store
